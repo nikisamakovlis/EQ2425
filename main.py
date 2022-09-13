@@ -20,7 +20,7 @@ def rotate_image(image):
     (h, w) = image.shape[:2]
     (cX, cY) = (w//2, h//2)  # finding the center point
     d = 0  # degree
-    for i in range(int(360/15)):
+    for i in range(int(360/15)+1):
         rotation_matrix = cv2.getRotationMatrix2D((cX, cY), d, 1.0)
         abs_cos, abs_sin = abs(rotation_matrix[0,0]), abs(rotation_matrix[0,1])
         bound_w = int(h * abs_sin + w * abs_cos)
@@ -81,7 +81,7 @@ def main():
 
     # part2-b
     rotated_imgs = rotate_image(images[0])
-    tested_keypoint_detector = 'surf'  # 'sift' or 'surf
+    tested_keypoint_detector = 'surf'  # 'sift' or 'surf'
 
     rotated_kp_list = []
     rotated_points_list = []
@@ -97,24 +97,28 @@ def main():
         rotated_kd_list.append(rotated_kd)
     print(len(rotated_points_list))
 
-    original_points = rotated_points_list[0]
-    for original_point in original_points:
-
-        for rotated_img_points in rotated_points_list[1:]:
-            pass
-
-
-
-
-
-
-
-
-
     # plot_images(columns=4, rows=6, imgs=rotated_kd_list, tested_keypoint_detector=tested_keypoint_detector)
 
-
-
+    repeatability_list = [0]*len(rotated_points_list[1:])
+    original_points = rotated_points_list[0]
+    for ind, rotated_img_points in enumerate(rotated_points_list[1:]):  # for each rotated image
+        print(f'Searching in the {ind}-th rotated image ...')
+        for ind_kp, original_point in enumerate(original_points):
+            # print(f'Matching with the {ind_kp}-th keypoint from the original image ...')
+            x_original, y_original = original_point
+            for ind_kp_rotated, rotated_point in enumerate(rotated_img_points):
+                x_rotated, y_rotated = rotated_point
+                if np.abs(x_original - x_rotated) <= 2 and np.abs(y_original - y_rotated) <= 2:
+                    repeatability_list[ind] += 1
+                    print(f'Matched keypoints detected ! - {ind_kp_rotated}-th in the rotated image matched with the {ind_kp}-th keypoint in the original image ...')
+                    break
+    # print(repeatability_list)
+    # surf: [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 6, 0, 0, 0, 0, 0, 402]
+    # sift: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 3, 0, 0, 2, 0, 0, 403]
+    repeatability_list = [i/len(original_points) for i in repeatability_list]
+    print(repeatability_list)
+    # surf: [0.0024875621890547263, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0024875621890547263, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0024875621890547263, 0.0, 0.0, 0.0, 0.014925373134328358, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+    # sift: [0.0024813895781637717, 0.0, 0.0, 0.0, 0.0, 0.0024813895781637717, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.004962779156327543, 0.007444168734491315, 0.0, 0.0, 0.004962779156327543, 0.0, 0.0, 1.0]
 
 
 
