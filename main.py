@@ -52,13 +52,17 @@ def calc_repeatability(rotated_points_list):
             # print(f'Matching with the {ind_kp}-th keypoint from the original image ...')
             x_original, y_original = original_point
             for ind_kp_rotated, rotated_point in enumerate(rotated_img_points):
+                # new_origin_x = math.sqrt(img_height**2+img_width**2) / 2 * math.cos(math.radians(45+15*(ind_kp_rotated+1))) \
+                #                + img_height * math.cos(math.radians(90-15*(ind_kp_rotated+1)))
+                # new_origin_y = img_width * math.cos(math.radians(90-15*(ind_kp_rotated+1)))
+                # x_rotated, y_rotated = rotate_point((new_origin_x, new_origin_y), rotated_point, math.radians(-15*(ind_kp_rotated+1)))
                 x_rotated, y_rotated = rotated_point
                 if np.abs(x_original - x_rotated) <= 2 and np.abs(y_original - y_rotated) <= 2:
                     repeatability_list[ind] += 1
                     print(
                         f'Matched keypoints detected ! - {ind_kp_rotated}-th in the rotated image matched with the {ind_kp}-th keypoint in the original image ...')
                     break
-    # print(repeatability_list)
+    print(repeatability_list)
     # surf: [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 6, 0, 0, 0, 0, 0, 402]
     # sift: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 3, 0, 0, 2, 0, 0, 403]
     repeatability_list = [i / len(original_points) for i in repeatability_list]
@@ -75,20 +79,29 @@ def main():
     #kp_surf, points, des_surf, img_surf = kp_detector_surf(images[0])
 
     # part2-b
-    tested_keypoint_detector = 'surf'
-    rotated_imgs = rotate_image(images[0])
+    tested_keypoint_detector = 'sift'
+    rotated_imgs, inverted_matrices = rotate_image(images[0])
     rotated_kp_list, rotated_kd_list, rotated_points_list = kp_detector_general(rotated_imgs, tested_keypoint_detector)
-    #repeatability_list = calc_repeatability(rotated_points_list)
-    plot_images(columns=4, rows=6, imgs=rotated_kd_list, tested_keypoint_detector=tested_keypoint_detector, augmentation='rotated', figsize=(40, 60))
 
-    # part 2-c
-    #scaled_images = scale_image(images[0])
-    #scaled_kp_list, scaled_kd_list, scaled_points_list = kp_detector_general(scaled_images, tested_keypoint_detector)
-    #scaled_repeatability_list = calc_repeatability(scaled_points_list)
-   # plot_images(columns=3, rows=2, imgs=scaled_kd_list, tested_keypoint_detector=tested_keypoint_detector, augmentation='scaled', figsize=(30, 20))
-    
+    transformed_points_list = []
+    for idx, points_list in enumerate(rotated_points_list):
+        points_list = np.array(points_list)
+        transformed_points = transform_rotation(inverted_matrices[idx], points_list)
+        transformed_points_list.append(transformed_points)
 
+    # repeatability_list = calc_repeatability(transformed_points, images[0].shape[:2][-1], images[0].shape[:2][-2])
+    repeatability_list = calc_repeatability(transformed_points_list)
+    #plot_images(columns=4, rows=6, imgs=rotated_kd_list, tested_keypoint_detector=tested_keypoint_detector, augmentation='rotated', figsize=(40, 60))
 
+    # # part 2-c
+    # scaled_images = scale_image(images[0])
+    # scaled_kp_list, scaled_kd_list, scaled_points_list = kp_detector_general(scaled_images, tested_keypoint_detector)
+    # #scaled_repeatability_list = calc_repeatability(scaled_points_list)
+    # plot_images(columns=3, rows=3, imgs=scaled_kd_list, tested_keypoint_detector=tested_keypoint_detector, augmentation='scaled', figsize=(60, 60))
+
+    # print(rotate_point((0,0), (1,1), math.radians(-45)))
+
+    # print(rotate_point((0, 0), (0,1), math.radians(-90)))
 
 
 
