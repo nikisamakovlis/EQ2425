@@ -22,7 +22,7 @@ def rotate_image(image):
     (h, w) = image.shape[:2]
     (cX, cY) = (w//2, h//2)  # finding the center point
     d = 0  # degree
-    for i in range(int(360/15)+1):
+    for d in range(0, 360 + 15, 15):
         rotation_matrix = cv2.getRotationMatrix2D((cX, cY), d, 1.0)
         inverted_matrix = cv2.getRotationMatrix2D((cX, cY), -d, 1.0)
         abs_cos, abs_sin = abs(rotation_matrix[0, 0]), abs(rotation_matrix[0,1])
@@ -40,7 +40,6 @@ def rotate_image(image):
 
         rotated_images.append(rotated_img)
         inverted_matrices.append(inverted_matrix)
-        d += 15
 
     return rotated_images, inverted_matrices
 
@@ -71,9 +70,9 @@ def scale_image(image):
     m = 1.2
     for i in range(0, 9):
         scaled_image = cv2.resize(image, None, fx=m**i, fy=m**i)
-        print(scaled_image.shape)
         scaled_images.append(scaled_image)
     return scaled_images
+
 
 
 def plot_images(columns, rows, imgs, tested_keypoint_detector, augmentation, figsize):
@@ -95,3 +94,30 @@ def plot_images(columns, rows, imgs, tested_keypoint_detector, augmentation, fig
             save_path = 'Scaled_images_sift1.png'
 
     plt.savefig(save_path, dpi=300)
+
+
+def plot_repeatability(augmentation, rep_list):
+    if augmentation is 'rotated':
+        x = np.arange(0, 360, 15)
+        title = 'Repeatability vs Rotation'
+        xlegend = 'Rotation'
+        ylegend = 'Repeatability'
+    else:
+        m = 1.2
+        x = [m**i for i in range(0, 9)]
+        title = 'Repeatability vs Scaling'
+        xlegend = 'Scaling'
+        ylegend = 'Repeatability'
+
+    plt.plot(x, rep_list)
+    plt.title(title)
+    plt.xlabel(xlegend)
+    plt.ylabel(ylegend)
+    plt.show()
+
+
+
+
+
+
+
